@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="payment-success">
+    <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
+    </div>
+    <h1>Payment Successful!</h1>
+    <div class="order-details">
+        <p>Order Number: {{ order.order_number }}</p>
+        <p>Amount Paid: QAR {{ order.total_amount }}</p>
+        <p>Payment Method: {{ order.get_payment_method_display }}</p>
+    </div>
+    <div class="next-steps">
+        <p>We'll send you an email confirmation shortly.</p>
+        <a href="{% url 'orders:order-detail' order.id %}" class="btn btn-primary">View Order Details</a>
+        <a href="{% url 'products:product-list' %}" class="btn btn-secondary">Continue Shopping</a>
+    </div>
+</div>
+{% endblock %}

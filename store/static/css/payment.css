@@ -1,0 +1,64 @@
+.payment-success,
+.payment-failure {
+    max-width: 600px;
+    margin: 3rem auto;
+    text-align: center;
+    padding: 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.success-icon {
+    color: #2ecc71;
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.failure-icon {
+    color: #e74c3c;
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.order-details,
+.error-details {
+    margin: 2rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.next-steps {
+    margin-top: 2rem;
+}
+
+.next-steps .btn {
+    margin: 0.5rem;
+    padding: 0.75rem 1.5rem;
+}
+
+.payment-method-selection {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.payment-method-card {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.payment-method-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.payment-method-card.selected {
+    border-color: var(--primary-color);
+    background: #f8f9fa;
+}

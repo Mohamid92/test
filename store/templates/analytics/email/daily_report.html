@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .report-container { max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; }
+        .stat-card { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { color: #28a745; }
+        .warning { color: #dc3545; }
+        .highlight { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <h2>Daily Payment Report - {{ date }}</h2>
+        
+        <div class="stat-card">
+            <h3>Transaction Summary</h3>
+            <p>Total Transactions: <span class="highlight">{{ analytics.total_transactions }}</span></p>
+            <p>Success Rate: <span class="{% if success_rate >= 90 %}success{% else %}warning{% endif %}">
+                {{ success_rate }}%
+            </span></p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Financial Summary</h3>
+            <p>Total Revenue: <span class="highlight">QAR {{ analytics.total_amount }}</span></p>
+            <p>Refunds: <span class="warning">QAR {{ analytics.refund_amount }}</span></p>
+        </div>
+    </div>
+</body>
+</html>

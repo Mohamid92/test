@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block meta_title %}{{ product.name }}{% endblock %}
+{% block meta_description %}{{ product.meta_description }}{% endblock %}
+{% block meta_keywords %}{{ product.meta_keywords }}{% endblock %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": "{{ product.name }}",
+    "description": "{{ product.short_description }}",
+    "brand": {
+        "@type": "Brand",
+        "name": "{{ product.brand }}"
+    },
+    "offers": {
+        "@type": "Offer",
+        "url": "{{ request.build_absolute_uri }}",
+        "priceCurrency": "USD",
+        "price": "{{ product.price }}",
+        "availability": "{% if product.stock > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"
+    }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="product-detail">
+    <div class="product-images">
+        {% for image in product.images.all %}
+        <img src="{{ image.image.url }}" alt="{{ image.alt_text }}" class="{% if image.is_primary %}primary{% endif %}">
+        {% endfor %}
+    </div>
+    
+    <div class="product-info">
+        <h1>{{ product.name }}</h1>
+        <div class="price">
+            {% if product.sale_price %}
+            <span class="original-price">${{ product.price }}</span>
+            <span class="sale-price">${{ product.sale_price }}</span>
+            {% else %}
+            <span class="price">${{ product.price }}</span>
+            {% endif %}
+        </div>
+        
+        <div class="description">
+            {{ product.description|safe }}
+        </div>
+        
+        <div class="specifications">
+            {% for spec in product.specifications.all %}
+            <div class="spec-item">
+                <span class="spec-name">{{ spec.name }}</span>
+                <span class="spec-value">{{ spec.value }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="add-to-cart">
+            <button class="add-to-cart-btn" data-product-id="{{ product.id }}">
+                Add to Cart
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

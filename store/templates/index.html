@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Welcome to TechSouk - Premier Electronics Store{% endblock %}
+
+{% block meta_description %}Discover our wide range of products at great prices. Shop online with fast delivery and excellent customer service.{% endblock %}
+
+{% block meta_keywords %}online shopping, best deals, fast delivery, quality products{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
+<style>
+    .hero-section {
+        background: url("{% static 'images/hero-banner.jpg' %}") no-repeat center;
+        background-size: cover;
+        padding: 100px 0;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    .category-card img {
+        height: 200px;
+        object-fit: cover;
+    }
+    .product-card img {
+        height: 250px;
+        object-fit: contain;
+        padding: 20px;
+    }
+    .feature-icon {
+        font-size: 2.5rem;
+        color: #0d6efd;
+        margin-bottom: 1rem;
+    }
+    .swiper {
+        padding: 20px 0;
+    }
+    
+    .swiper-slide {
+        height: auto;
+    }
+    
+    .swiper-button-next, .swiper-button-prev {
+        color: var(--primary-color);
+        background: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .swiper-button-next:after, .swiper-button-prev:after {
+        font-size: 18px;
+    }
+    
+    .swiper-pagination-bullet-active {
+        background: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1>Welcome to TechSouk</h1>
+                <p class="lead">Your Premier Electronics Marketplace</p>
+                <a href="/products/" class="btn btn-primary btn-lg">
+                    <i class="bi bi-shop"></i> Shop Now
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="featured-categories mb-5">
+    <div class="container">
+        <h2><i class="bi bi-grid-3x3-gap"></i> Featured Categories</h2>
+        <div class="swiper categoriesSwiper">
+            <div class="swiper-wrapper" id="featured-categories">
+                <!-- Categories will be loaded here -->
+            </div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </div>
+</section>
+
+<section class="featured-products mb-5">
+    <div class="container">
+        <h2><i class="bi bi-star"></i> Featured Products</h2>
+        <div class="swiper productsSwiper">
+            <div class="swiper-wrapper" id="featured-products">
+                <!-- Products will be loaded here -->
+            </div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+        </div>
+    </div>
+</section>
+
+<section class="why-choose-us mb-5">
+    <div class="container">
+        <h2><i class="bi bi-check-circle"></i> Why Choose TechSouk</h2>
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="bi bi-truck feature-icon"></i>
+                        <h5>Fast Delivery</h5>
+                        <p>Quick and reliable shipping to your doorstep</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="bi bi-shield-check feature-icon"></i>
+                        <h5>Secure Payments</h5>
+                        <p>Multiple secure payment options available</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <i class="bi bi-award feature-icon"></i>
+                        <h5>Quality Products</h5>
+                        <p>Authentic electronics and gadgets</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+<script>
+// Fetch featured categories
+fetch('/api/categories/?featured=true')
+    .then(response => response.json())
+    .then(data => {
+        const categoriesContainer = document.getElementById('featured-categories');
+        data.results.forEach(category => {
+            categoriesContainer.innerHTML += createCategoryCard(category);
+        });
+    });
+
+// Fetch featured products
+fetch('/api/products/?featured=true')
+    .then(response => response.json())
+    .then(data => {
+        const productsContainer = document.getElementById('featured-products');
+        data.results.forEach(product => {
+            productsContainer.innerHTML += createProductCard(product);
+        });
+    });
+
+function addToCart(productId) {
+    fetch('/api/cart/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            product_id: productId,
+            quantity: 1
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Product added to cart!');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Initialize Swiper
+const categoriesSwiper = new Swiper('.categoriesSwiper', {
+    slidesPerView: 1,
+    spaceBetween: 20,
+    pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+    },
+    navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+    },
+    breakpoints: {
+        640: {
+            slidesPerView: 2,
+        },
+        768: {
+            slidesPerView: 3,
+        },
+        1024: {
+            slidesPerView: 4,
+        },
+    },
+});
+
+const productsSwiper = new Swiper('.productsSwiper', {
+    slidesPerView: 1,
+    spaceBetween: 20,
+    pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+    },
+    navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+    },
+    breakpoints: {
+        640: {
+            slidesPerView: 2,
+        },
+        768: {
+            slidesPerView: 3,
+        },
+        1024: {
+            slidesPerView: 4,
+        },
+    },
+});
+
+// Update the category card template
+function createCategoryCard(category) {
+    return `
+        <div class="swiper-slide">
+            <div class="card category-card">
+                <img src="${category.image}" class="card-img-top" alt="${category.name}">
+                <div class="card-body text-center">
+                    <h5 class="card-title">${category.name}</h5>
+                    <a href="/products/?category=${category.id}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-right"></i> Browse
+                    </a>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Update the product card template
+function createProductCard(product) {
+    return `
+        <div class="swiper-slide">
+            <div class="card product-card">
+                ${product.sale_price ? '<span class="sale-badge">SALE</span>' : ''}
+                <span class="price-badge">$${product.price}</span>
+                <img src="${product.image}" class="card-img-top product-image" alt="${product.name}">
+                <div class="card-body text-center">
+                    <h5 class="card-title">${product.name}</h5>
+                    <p class="card-text">${product.short_description}</p>
+                    <button onclick="addToCart(${product.id})" class="btn btn-primary">
+                        <i class="bi bi-cart-plus"></i> Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block meta_title %}Shopping Cart{% endblock %}
+{% block meta_description %}Your shopping cart at Electronics Store{% endblock %}
+
+{% block content %}
+<div class="cart-page">
+    <h1>Shopping Cart</h1>
+    
+    {% if cart.items.exists %}
+        <div class="cart-items">
+            {% for item in cart.items.all %}
+            <div class="cart-item" data-item-id="{{ item.id }}">
+                <div class="item-image">
+                    {% if item.product.images.exists %}
+                    <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}">
+                    {% endif %}
+                </div>
+                <div class="item-details">
+                    <h3>{{ item.product.name }}</h3>
+                    <p class="item-price">${{ item.product.price }}</p>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus">-</button>
+                        <input type="number" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" class="quantity-input">
+                        <button class="quantity-btn plus">+</button>
+                    </div>
+                    <button class="remove-item">Remove</button>
+                </div>
+                <div class="item-subtotal">
+                    $<span class="subtotal-value">{{ item.subtotal }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="cart-summary">
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <span>${{ cart.total }}</span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping:</span>
+                <span>Calculated at checkout</span>
+            </div>
+            <a href="{% url 'checkout' %}" class="checkout-btn">Proceed to Checkout</a>
+        </div>
+    {% else %}
+        <div class="empty-cart">
+            <p>Your cart is empty</p>
+            <a href="{% url 'products:product-list' %}" class="continue-shopping">Continue Shopping</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/cart-page.js' %}"></script>
+{% endblock %}

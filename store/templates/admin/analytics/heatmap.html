@@ -1,0 +1,46 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+<link rel="stylesheet" href="{% static 'admin/css/heatmap.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="heatmap-container">
+    <div class="filters">
+        <select id="pageSelector">
+            <option value="">Select Page</option>
+            {% for page in pages %}
+            <option value="{{ page.url }}">{{ page.url }}</option>
+            {% endfor %}
+        </select>
+        <select id="deviceType">
+            <option value="">All Devices</option>
+            <option value="desktop">Desktop</option>
+            <option value="mobile">Mobile</option>
+            <option value="tablet">Tablet</option>
+        </select>
+        <button id="generateHeatmap">Generate Heatmap</button>
+    </div>
+
+    <div class="visualization">
+        <div id="heatmapContainer"></div>
+    </div>
+
+    <div class="metrics">
+        <div class="metric-card">
+            <h3>Total Clicks</h3>
+            <p id="totalClicks">0</p>
+        </div>
+        <div class="metric-card">
+            <h3>Hot Areas</h3>
+            <p id="hotAreas">0</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'admin/js/heatmap.min.js' %}"></script>
+<script src="{% static 'admin/js/analytics-visualization.js' %}"></script>
+{% endblock %}

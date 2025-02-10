@@ -1,0 +1,50 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+<link rel="stylesheet" href="{% static 'admin/css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="analytics-dashboard">
+    <div class="filters">
+        <form method="get">
+            <div class="date-range">
+                <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+                <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+                <button type="submit">Filter</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="summary-cards">
+        <div class="card">
+            <h3>Total Revenue</h3>
+            <p>QAR {{ total_amount }}</p>
+        </div>
+        <div class="card">
+            <h3>Success Rate</h3>
+            <p>{{ success_rate }}%</p>
+        </div>
+        <div class="card">
+            <h3>Refund Rate</h3>
+            <p>{{ refund_rate }}%</p>
+        </div>
+    </div>
+
+    <div class="charts">
+        <div class="chart">
+            <canvas id="transactionsChart"></canvas>
+        </div>
+        <div class="chart">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'admin/js/chart.min.js' %}"></script>
+<script src="{% static 'admin/js/analytics.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+<link rel="stylesheet" href="{% static 'admin/css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/chart.min.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="analytics-dashboard">
+    <!-- Date Range Filter -->
+    <div class="date-filter">
+        <input type="date" id="startDate" value="{{ start_date|date:'Y-m-d' }}">
+        <input type="date" id="endDate" value="{{ end_date|date:'Y-m-d' }}">
+        <button onclick="updateDashboard()">Update</button>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="metric-cards">
+        <div class="metric-card">
+            <h3>Total Page Views</h3>
+            <p id="totalPageViews">{{ page_views.total }}</p>
+            <canvas id="pageViewsChart"></canvas>
+        </div>
+        <div class="metric-card">
+            <h3>Unique Visitors</h3>
+            <p id="uniqueVisitors">{{ page_views.unique }}</p>
+            <canvas id="visitorsChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Detailed Charts -->
+    <div class="chart-grid">
+        <div class="chart-container">
+            <h3>Device Distribution</h3>
+            <canvas id="deviceChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3>Top Products</h3>
+            <canvas id="productsChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3>Search Terms</h3>
+            <canvas id="searchChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3>User Behavior</h3>
+            <canvas id="behaviorChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/chart.min.js' %}"></script>
+<script src="{% static 'admin/js/dashboard.js' %}"></script>
+<script>
+    const analyticsData = {{ analytics_data|safe }};
+    initializeDashboard(analyticsData);
+</script>
+{% endblock %}

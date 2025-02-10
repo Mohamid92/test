@@ -1,0 +1,45 @@
+{% extends 'analytics/dashboard/base.html' %}
+
+{% block title %}Real-time Analytics{% endblock %}
+
+{% block header %}Real-time Analytics{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Active Users -->
+    <div class="bg-white p-4 rounded-lg shadow">
+        <h3 class="text-lg font-semibold mb-2">Active Users</h3>
+        <p class="text-3xl font-bold text-blue-600" id="active-users">0</p>
+    </div>
+
+    <!-- Current Page Views -->
+    <div class="bg-white p-4 rounded-lg shadow">
+        <h3 class="text-lg font-semibold mb-2">Page Views</h3>
+        <p class="text-3xl font-bold text-green-600" id="page-views">0</p>
+    </div>
+
+    <!-- Active Carts -->
+    <div class="bg-white p-4 rounded-lg shadow">
+        <h3 class="text-lg font-semibold mb-2">Active Carts</h3>
+        <p class="text-3xl font-bold text-yellow-600" id="active-carts">0</p>
+    </div>
+
+    <!-- Live Sales -->
+    <div class="bg-white p-4 rounded-lg shadow">
+        <h3 class="text-lg font-semibold mb-2">Today's Sales</h3>
+        <p class="text-3xl font-bold text-purple-600" id="today-sales">0</p>
+    </div>
+</div>
+
+<!-- Live Activity Feed -->
+<div class="mt-8 bg-white rounded-lg shadow p-4">
+    <h3 class="text-lg font-semibold mb-4">Live Activity</h3>
+    <div id="activity-feed" class="space-y-2">
+        <!-- Activity items will be inserted here -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/realtime-analytics.js' %}"></script>
+{% endblock %}

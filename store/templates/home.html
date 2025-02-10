@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block meta_title %}Home{% endblock %}
+{% block meta_description %}Shop for the latest electronics, smart home devices, and IT infrastructure solutions{% endblock %}
+{% block meta_keywords %}electronics, smart home, IT infrastructure, smart devices{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1>Welcome to Electronics Store</h1>
+        <p>Discover Smart Solutions for Modern Living</p>
+    </div>
+</section>
+
+<section class="featured-categories">
+    <h2>Shop by Category</h2>
+    <div class="category-grid">
+        {% for category in main_categories %}
+        <div class="category-card">
+            {% if category.image %}
+            <img src="{{ category.image.url }}" alt="{{ category.name }}">
+            {% endif %}
+            <h3>{{ category.name }}</h3>
+            <a href="{% url 'products:category-detail' category.slug %}" class="category-link">
+                Explore {{ category.name }}
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="featured-products">
+    <h2>Featured Products</h2>
+    <div class="product-grid">
+        {% for product in featured_products %}
+        {% include 'products/includes/product_card.html' with product=product %}
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

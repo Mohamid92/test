@@ -1,0 +1,25 @@
+<div class="product-card">
+    {% if product.images.exists %}
+    <div class="product-image">
+        <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
+    </div>
+    {% endif %}
+    
+    <div class="product-info">
+        <h3>{{ product.name }}</h3>
+        <div class="product-price">
+            {% if product.sale_price %}
+            <span class="original-price">${{ product.price }}</span>
+            <span class="sale-price">${{ product.sale_price }}</span>
+            {% else %}
+            <span class="price">${{ product.price }}</span>
+            {% endif %}
+        </div>
+        <a href="{% url 'products:product-detail' product.slug %}" class="product-link">
+            View Details
+        </a>
+        <button class="add-to-cart-btn" data-product-id="{{ product.id }}">
+            Add to Cart
+        </button>
+    </div>
+</div>
