@@ -1,23 +1,40 @@
-from .qpay import QPayGateway
+"""
+Payment Gateway Factory
+
+Provides a factory pattern implementation for different payment gateways.
+Integrates with:
+- Gateway configurations
+- Payment processing
+- Response handling
+"""
+
+from django.conf import settings
+from .qpay import QPAYGateway
 from .cbq import CBQGateway
 from .naps import NAPSGateway
-from .qnb import QNBGateway
-from .tap import TapGateway
+from .tap import TAPGateway
+from .ooredoo import OoredooGateway
 from .fatoora import FatooraGateway
 
 class PaymentGatewayFactory:
+    """
+    Factory class for payment gateway initialization
+    """
+    
     GATEWAYS = {
-        'QPAY': QPayGateway,
+        'QPAY': QPAYGateway,
         'CBQ': CBQGateway,
         'NAPS': NAPSGateway,
-        'QNB': QNBGateway,
-        'TAP': TapGateway,
-        'FATOORA': FatooraGateway,
+        'TAP': TAPGateway,
+        'OOREDOO': OoredooGateway,
+        'FATOORA': FatooraGateway
     }
 
     @classmethod
-    def get_gateway(cls, gateway_name: str):
-        gateway_class = cls.GATEWAYS.get(gateway_name.upper())
-        if not gateway_class:
-            raise ValueError(f"Unsupported payment gateway: {gateway_name}")
+    def get_gateway(cls, gateway_name):
+        """Returns configured gateway instance"""
+        if gateway_name not in cls.GATEWAYS:
+            raise ValueError(f"Unsupported gateway: {gateway_name}")
+            
+        gateway_class = cls.GATEWAYS[gateway_name]
         return gateway_class()

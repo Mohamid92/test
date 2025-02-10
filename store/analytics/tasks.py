@@ -1,10 +1,23 @@
-from email.message import EmailMessage
+"""
+Analytics Tasks
+
+Celery tasks for analytics processing and reporting.
+Integrates with:
+- Email notifications
+- Data aggregation
+- Report generation
+"""
+
 from celery import shared_task
-from django.utils import timezone
-from datetime import timedelta, datetime
-from django.db.models import Count, Sum
-from orders.models import PaymentLog, PaymentAnalytics, StoreConfiguration
-from .reports import ExcelReportGenerator, PaymentReportGenerator, ReportGenerator
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import PageView, ProductView, CartAbandonment
+from .reports import (
+    DailyAnalyticsReport,
+    WeeklyAnalyticsReport,
+    MonthlyAnalyticsReport
+)
+from datetime import datetime, timedelta
 
 @shared_task
 def calculate_daily_analytics():
@@ -88,3 +101,51 @@ def generate_monthly_report():
                 'application/pdf')
     
     return email.send()
+
+@shared_task
+def process_cart_abandonments():
+    """
+    Process abandoned carts and trigger recovery actions.
+    Called by:
+    - Celery beat scheduler
+    - Manual admin trigger
+    """
+    threshold = timezone.now() - timedelta(hours=1)
+    abandonments = CartAbandonment.objects.filter(
+        abandoned_at__lte=threshold,
+        recovered=False
+    )
+    
+    for abandonment in abandonments:
+        try:
+            # Trigger recovery workflow
+            if abandonment.user and abandonment.user.email:
+                send_cart_recovery_email.delay(abandonment.id)
+            
+            # Track for analytics
+            log_cart_abandonment.delay(abandonment.id)
+        except Exception as e:
+            print(f"Error processing abandonment {abandonment.id}: {str(e)}")
+
+@shared_task
+def aggregate_daily_analytics():
+    """
+    Aggregates daily analytics metrics
+    Scheduled: Daily at midnight
+    """
+    yesterday = datetime.now().date() - timedelta(days=1)
+    report = DailyAnalyticsReport(yesterday)
+    report.generate()
+    send_daily_report.delay(yesterday)
+
+@shared_task
+def clean_old_analytics():
+    """
+    Cleans up old analytics data
+    Retention: 90 days for detailed data
+    """
+    cutoff_date = datetime.now() - timedelta(days=90)
+    PageView.objects.filter(created_at__lt=cutoff_date).delete()
+    ProductView.objects.filter(viewed_at__lt=cutoff_date).delete()
+
+# ... Additional analytics tasks ...

@@ -1,18 +1,60 @@
+"""
+Order Admin Interface
+
+Customizes Django admin interface for order management.
+Features:
+- Order processing
+- Payment tracking
+- Refund management
+"""
+
 from django.contrib import admin
-from .models import Order, OrderItem, StoreConfiguration, PaymentLog, Refund, PaymentAnalytics
+from django.utils.html import format_html
+from .models import Order, OrderItem, PaymentLog, Refund, StoreConfiguration
+from .tasks import send_order_confirmation
 
 class OrderItemInline(admin.TabularInline):
+    """Inline editor for order items"""
     model = OrderItem
+    readonly_fields = ['subtotal']
     extra = 0
-    readonly_fields = ('subtotal',)
+
+class PaymentLogInline(admin.TabularInline):
+    """Inline display of payment logs"""
+    model = PaymentLog
+    readonly_fields = ['payment_id', 'gateway', 'amount', 'status', 'created_at']
+    can_delete = False
+    extra = 0
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('order_number', 'user', 'phone_number', 'total_amount', 'order_status', 'payment_status', 'created_at')
-    list_filter = ('order_status', 'payment_status', 'created_at')
-    search_fields = ('order_number', 'phone_number', 'user__phone_number')
-    readonly_fields = ('order_number', 'created_at', 'updated_at')
-    inlines = [OrderItemInline]
+    """
+    Order management interface.
+    Features:
+    - Status management
+    - Payment tracking
+    - Customer communication
+    """
+    list_display = [
+        'order_number', 'user', 'total_amount',
+        'order_status', 'payment_status', 'created_at'
+    ]
+    list_filter = ['order_status', 'payment_status', 'created_at']
+    search_fields = [
+        'order_number', 'user__email',
+        'user__phone_number', 'shipping_address__street_address'
+    ]
+    inlines = [OrderItemInline, PaymentLogInline]
+    readonly_fields = ['order_number', 'created_at', 'updated_at']
+    actions = ['mark_as_processing', 'mark_as_shipped']
+
+    def mark_as_processing(self, request, queryset):
+        """Bulk action to mark orders as processing"""
+        updated = queryset.update(order_status='PROCESSING')
+        self.message_user(request, f'{updated} orders marked as processing.')
+    mark_as_processing.short_description = "Mark selected orders as processing"
+
+    # ... additional admin methods ...
 
 @admin.register(StoreConfiguration)
 class StoreConfigurationAdmin(admin.ModelAdmin):

@@ -1,13 +1,31 @@
-from django.urls import path
-from . import views
+"""
+Analytics URL Configuration
+
+Defines URL patterns for analytics views and API endpoints.
+Integrates with:
+- DRF router
+- Admin views
+- API authentication
+"""
+
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import (
+    AnalyticsAPIView,
+    AnalyticsDashboardView,
+    ReportDownloadView
+)
+
+router = DefaultRouter()
 
 app_name = 'analytics'
 
 urlpatterns = [
-    path('api/analytics/', views.AnalyticsAPIView.as_view(), name='analytics-data'),
-    path('api/analytics/payments/', views.PaymentReconciliationView.as_view(), name='payment-reconciliation'),
-    path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
-    path('dashboard/sales-report/', views.SalesReportView.as_view(), name='sales-report'),
-    path('dashboard/payment-methods/', views.PaymentMethodsView.as_view(), name='payment-methods'),
-    path('dashboard/export/<str:report_type>/', views.ExportReportView.as_view(), name='export-report'),
+    # API endpoints
+    path('api/', include(router.urls)),
+    path('api/stats/', AnalyticsAPIView.as_view(), name='stats'),
+    path('api/reports/download/', ReportDownloadView.as_view(), name='download-report'),
+    
+    # Dashboard views
+    path('dashboard/', AnalyticsDashboardView.as_view(), name='dashboard'),
 ]

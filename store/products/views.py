@@ -1,22 +1,61 @@
+"""
+Product Views and ViewSets
+
+Handles all product-related API endpoints and views.
+Integrates with:
+- Cart app for adding products to cart
+- Analytics app for tracking product views
+- SEO app for meta tags
+"""
+
 from django.shortcuts import render
 from rest_framework import viewsets, filters
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters import rest_framework as django_filters
 from .models import Product, Category
 from .serializers import ProductSerializer, CategorySerializer
+from analytics.tracking import UserTracker
 
 class ProductFilter(django_filters.FilterSet):
-    min_price = django_filters.NumberFilter(field_name="price", lookup_expr='gte')
-    max_price = django_filters.NumberFilter(field_name="price", lookup_expr='lte')
-    category = django_filters.CharFilter(field_name='category__slug')
+    """
+    Product filtering class
+    
+    Used by:
+    - ProductViewSet
+    - API endpoints for filtering products
+    - Frontend product listing pages
+    """
+    min_price = django_filters.NumberFilter(
+        field_name="price",
+        lookup_expr='gte',
+        help_text="Filter products with price greater than or equal to this value"
+    )
+    max_price = django_filters.NumberFilter(
+        field_name="price",
+        lookup_expr='lte',
+        help_text="Filter products with price less than or equal to this value"
+    )
+    category = django_filters.CharFilter(
+        field_name='category__slug',
+        help_text="Filter products by category slug"
+    )
 
     class Meta:
         model = Product
         fields = ['category', 'brand', 'is_active', 'min_price', 'max_price']
 
 class ProductViewSet(viewsets.ModelViewSet):
+    """
+    Product ViewSet
+    
+    Handles all product-related API endpoints.
+    Integrates with:
+    - Analytics app for tracking product views
+    - Cart app for checking stock availability
+    - Order app for checking product availability
+    """
     serializer_class = ProductSerializer
     permission_classes = [AllowAny]
     filterset_class = ProductFilter

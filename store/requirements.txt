@@ -1,13 +1,87 @@
-Django>=4.2.0
-djangorestframework>=3.14.0
-python-dotenv>=1.0.0
-Pillow>=9.5.0
-django-cors-headers>=4.0.0
-django-allauth>=0.54.0
-django-phonenumber-field[phonenumbers]>=7.1.0
-django-storages>=1.13.2
-django-compressor>=4.3.1
-django-taggings>=4.0.0
-psycopg2-binary>=2.9.6
-celery>=5.2.7
-redis>=4.5.4
+# Core Django
+Django==5.0.2
+djangorestframework==3.14.0
+
+# Database
+psycopg2-binary==2.9.9  # PostgreSQL adapter
+redis==5.0.1  # Redis support for caching and Celery
+
+# Task Queue & Background Jobs
+celery==5.3.6
+django-celery-beat==2.5.0
+django-celery-results==2.5.1
+
+# Authentication & Security
+django-cors-headers==4.3.1
+django-phonenumber-field==7.3.0
+phonenumbers==8.13.30
+django-allauth==0.60.1
+django-guardian==2.4.0
+
+# File Handling & Media
+Pillow==10.2.0  # Image processing
+django-storages==1.14.2  # Storage backends
+boto3==1.34.34  # AWS S3 support
+
+# API & Filtering
+django-filter==23.5
+drf-yasg==1.21.7  # API documentation
+django-model-utils==4.3.1
+
+# Payment Processing
+stripe==7.11.0
+requests==2.31.0
+
+# Development & Testing
+pytest==8.0.0
+pytest-django==4.8.0
+coverage==7.4.1
+black==24.1.1  # Code formatting
+flake8==7.0.0  # Code linting
+ipython==8.21.0  # Enhanced Python shell
+
+# Utilities
+python-dotenv==1.0.1  # Environment variables
+django-environ==0.11.2
+pytz==2024.1  # Timezone support
+Markdown==3.5.2  # Markdown support
+django-money==3.4.1  # Money fields
+django-countries==7.5.1  # Country fields
+
+# Caching & Performance
+django-cacheops==7.0.2
+django-redis==5.4.0
+
+# Search & Analytics
+elasticsearch-dsl==8.11.0
+django-elasticsearch-dsl==8.0
+
+# Production
+gunicorn==21.2.0
+whitenoise==6.6.0  # Static file serving
+sentry-sdk==1.40.3  # Error tracking
+
+# Export & Reporting
+openpyxl==3.1.2  # Excel support
+reportlab==4.0.9  # PDF generation
+WeasyPrint==60.2  # HTML to PDF
+
+# Monitoring & Logging
+django-debug-toolbar==4.2.0
+structlog==24.1.0
+
+# Email
+django-anymail==10.2  # Email backends
+
+# SEO & Sitemap
+django-robots==6.1
+django-meta==2.4.1
+django-sitemap-generator==1.2.0
+
+# Localization
+django-modeltranslation==0.18.11
+Babel==2.14.0
+
+# Documentation
+Sphinx==7.2.6
+sphinx-rtd-theme==2.0.0

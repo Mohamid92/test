@@ -1,39 +1,125 @@
+"""
+Analytics Models
+
+Core models for tracking user behavior, page views, and sales metrics.
+Integrates with:
+- User authentication
+- Product views
+- Cart behavior
+- Search patterns
+"""
+
 from django.db import models
 from django.conf import settings
+import json
 
-# Create your models here.
+class UserSession(models.Model):
+    """
+    Tracks user sessions across the platform
+    
+    Links to:
+    - User model (optional)
+    - Page views
+    - Product views
+    - Cart actions
+    """
+    session_id = models.CharField(max_length=40, unique=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
+    device_info = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_seen = models.DateTimeField(auto_now=True)
 
 class PageView(models.Model):
-    session_id = models.CharField(max_length=255)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    url = models.CharField(max_length=500)
+    """
+    Tracks individual page views
+    
+    Used for:
+    - Traffic analysis
+    - User journey mapping
+    - Conversion tracking
+    """
+    session_id = models.CharField(max_length=40, db_index=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.SET_NULL
+    )
+    url = models.URLField(max_length=500)
     path = models.CharField(max_length=500)
-    referrer = models.CharField(max_length=500, null=True, blank=True)
-    device_type = models.CharField(max_length=50, null=True)
-    browser = models.CharField(max_length=50, null=True)
+    referrer = models.URLField(max_length=500, null=True)
+    device_type = models.CharField(max_length=50)
+    browser = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['created_at']),
+            models.Index(fields=['path'])
+        ]
+
 class ProductView(models.Model):
+    """
+    Product View Tracking
+    
+    Records product page views and duration.
+    Used for:
+    - Product popularity metrics
+    - Recommendation engine
+    - Conversion tracking
+    """
     session_id = models.CharField(max_length=255)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
     product = models.ForeignKey('products.Product', on_delete=models.CASCADE)
     viewed_at = models.DateTimeField(auto_now_add=True)
-    duration = models.IntegerField(default=0)  # Time spent viewing in seconds
+    duration = models.IntegerField(
+        default=0,
+        help_text="Time spent viewing in seconds"
+    )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['product', 'viewed_at']),
+            models.Index(fields=['session_id'])
+        ]
 
 class CartAbandonment(models.Model):
+    """
+    Cart Abandonment Tracking
+    
+    Records abandoned carts for analysis.
+    Used by:
+    - Marketing automation
+    - Sales recovery
+    - Customer engagement
+    """
     cart = models.ForeignKey('cart.Cart', on_delete=models.CASCADE)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
     abandoned_at = models.DateTimeField(auto_now_add=True)
     cart_value = models.DecimalField(max_digits=10, decimal_places=2)
     items_count = models.IntegerField()
+    recovered = models.BooleanField(default=False)
+    recovery_date = models.DateTimeField(null=True, blank=True)
 
-class UserSession(models.Model):
-    session_id = models.CharField(max_length=255, unique=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
-    start_time = models.DateTimeField(auto_now_add=True)
-    end_time = models.DateTimeField(null=True)
-    is_active = models.BooleanField(default=True)
-    device_info = models.JSONField(default=dict)
+    class Meta:
+        indexes = [
+            models.Index(fields=['abandoned_at']),
+            models.Index(fields=['cart_value'])
+        ]
 
 class UserBehavior(models.Model):
     BEHAVIOR_TYPES = [

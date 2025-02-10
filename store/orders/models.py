@@ -1,8 +1,28 @@
+"""
+Order Management Models
+
+Core models for order processing and payment handling.
+Integrates with:
+- User accounts for customer management
+- Products for inventory tracking
+- Payment gateways for transactions
+- Analytics for sales tracking
+"""
+
 from django.db import models
 from django.conf import settings
 from products.models import Product
 
 class Order(models.Model):
+    """
+    Primary order model
+    
+    Tracks:
+    - Order status and details
+    - Payment status
+    - Shipping information
+    - Customer information
+    """
     ORDER_STATUS_CHOICES = [
         ('PENDING', 'Pending'),
         ('PROCESSING', 'Processing'),
@@ -30,7 +50,21 @@ class Order(models.Model):
     tracking_number = models.CharField(max_length=100, blank=True, null=True)
     notes = models.TextField(blank=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['order_number']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['order_status']),
+            models.Index(fields=['payment_status']),
+        ]
+
     def save(self, *args, **kwargs):
+        """
+        Custom save method to:
+        - Generate order number
+        - Update inventory
+        - Track analytics
+        """
         if not self.order_number:
             self.order_number = self._generate_order_number()
         super().save(*args, **kwargs)
@@ -38,6 +72,16 @@ class Order(models.Model):
     def _generate_order_number(self):
         from datetime import datetime
         return f"ORD-{datetime.now().strftime('%Y%m%d')}-{Order.objects.count() + 1:04d}"
+
+    @property
+    def can_cancel(self):
+        """Check if order can be cancelled"""
+        return self.order_status == 'PENDING'
+
+    @property
+    def can_refund(self):
+        """Check if order is eligible for refund"""
+        return self.payment_status == 'PAID' and self.order_status != 'CANCELLED'
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
@@ -127,6 +171,14 @@ class StoreConfiguration(models.Model):
         super().save(*args, **kwargs)
 
 class PaymentLog(models.Model):
+    """
+    Payment transaction log
+    
+    Tracks:
+    - Payment attempts
+    - Gateway responses
+    - Transaction status
+    """
     PAYMENT_STATUS_CHOICES = [
         ('INITIATED', 'Payment Initiated'),
         ('PROCESSING', 'Processing'),
@@ -147,6 +199,11 @@ class PaymentLog(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['payment_id']),
+            models.Index(fields=['gateway', 'status']),
+            models.Index(fields=['created_at']),
+        ]
 
 class Refund(models.Model):
     REFUND_STATUS_CHOICES = [

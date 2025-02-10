@@ -1,4 +1,12 @@
+"""
+Analytics Admin Interface
+
+Customizes Django admin for analytics data viewing and export.
+"""
+
 from django.contrib import admin
+from django.db.models import Count, Avg
+from django.utils.html import format_html
 from django.template.response import TemplateResponse
 from django.urls import path
 from .models import (PageView, ProductView, CartAbandonment, UserSession, 
@@ -6,9 +14,18 @@ from .models import (PageView, ProductView, CartAbandonment, UserSession,
 
 @admin.register(PageView)
 class PageViewAdmin(admin.ModelAdmin):
-    list_display = ('url', 'user', 'device_type', 'created_at')
-    list_filter = ('device_type', 'created_at')
-    search_fields = ('url', 'user__phone_number')
+    """Admin interface for page views"""
+    list_display = [
+        'path', 'device_type', 'browser',
+        'user', 'created_at'
+    ]
+    list_filter = ['device_type', 'browser', 'created_at']
+    search_fields = ['path', 'user__email']
+    date_hierarchy = 'created_at'
+
+    def get_queryset(self, request):
+        """Optimize queryset with annotations"""
+        return super().get_queryset(request).select_related('user')
 
 @admin.register(ProductView)
 class ProductViewAdmin(admin.ModelAdmin):

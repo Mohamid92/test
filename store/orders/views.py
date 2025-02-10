@@ -1,19 +1,44 @@
-from django.shortcuts import render
+"""
+Order Management Views
+
+Handles order processing, payments, and analytics.
+Integrates with:
+- Payment gateways
+- Inventory management
+- Customer notifications
+- Analytics tracking
+"""
+
 from rest_framework import viewsets, status, views
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Count
-from .models import Order, PaymentAnalytics, PaymentLog
-from .serializers import OrderSerializer, OrderCreateSerializer, PaymentAnalyticsSerializer
+from django.utils import timezone
+from .models import Order, PaymentLog
+from .serializers import OrderSerializer, OrderCreateSerializer
 from .payment_gateways.factory import PaymentGatewayFactory
+from .tasks import process_order, send_order_notification
 
 class OrderViewSet(viewsets.ModelViewSet):
+    """
+    Order management viewset
+    
+    Handles:
+    - Order creation and updates
+    - Payment processing
+    - Order cancellation
+    - Refunds
+    """
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Order.objects.filter(user=self.request.user)
+        """Filter orders by user"""
+        user = self.request.user
+        if user.is_staff:
+            return Order.objects.all()
+        return Order.objects.filter(user=user)
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -24,16 +49,59 @@ class OrderViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
     @action(detail=True, methods=['post'])
-    def cancel(self, request, pk=None):
+    def process_payment(self, request, pk=None):
+        """
+        Process payment for order
+        
+        Steps:
+        1. Validate order status
+        2. Initialize payment gateway
+        3. Process payment
+        4. Update order status
+        5. Send notifications
+        """
         order = self.get_object()
-        if order.order_status == 'PENDING':
-            order.order_status = 'CANCELLED'
-            order.save()
-            return Response({'status': 'order cancelled'})
-        return Response(
-            {'error': 'Order cannot be cancelled'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        gateway_name = request.data.get('gateway')
+        
+        try:
+            gateway = PaymentGatewayFactory.get_gateway(gateway_name)
+            result = gateway.process_payment(order, request.data)
+            
+            if result.get('status') == 'success':
+                order.payment_status = 'PAID'
+                order.save()
+                process_order.delay(order.id)
+            
+            return Response(result)
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        """
+        Cancel order if eligible
+        
+        Checks:
+        - Order status
+        - Payment status
+        - Time constraints
+        """
+        order = self.get_object()
+        if not order.can_cancel:
+            return Response(
+                {'error': 'Order cannot be cancelled'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        order.order_status = 'CANCELLED'
+        order.save()
+        
+        # Send cancellation notification
+        send_order_notification.delay(order.id, 'CANCELLED')
+        return Response({'status': 'order cancelled'})
 
     @action(detail=True, methods=['post'])
     def initiate_payment(self, request, pk=None):
@@ -119,6 +187,35 @@ class OrderViewSet(viewsets.ModelViewSet):
         ).order_by('date')
         
         return Response(PaymentAnalyticsSerializer(analytics, many=True).data)
+
+class PaymentWebhookView(views.APIView):
+    """
+    Payment webhook handler
+    
+    Processes:
+    - Payment gateway callbacks
+    - Order status updates
+    - Payment verification
+    """
+    
+    def post(self, request, gateway_name):
+        try:
+            gateway = PaymentGatewayFactory.get_gateway(gateway_name)
+            result = gateway.handle_webhook(request)
+            
+            if result.get('order_id'):
+                order = Order.objects.get(id=result['order_id'])
+                if result.get('status') == 'success':
+                    order.payment_status = 'PAID'
+                    order.save()
+                    process_order.delay(order.id)
+            
+            return Response({'status': 'success'})
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class PaymentReconciliationView(views.APIView):
     permission_classes = [IsAdminUser]
